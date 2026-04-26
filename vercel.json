@@ -1,15 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/api/login",
-      "destination": "/api/main.py"
-    },
-    {
       "source": "/api/register",
       "destination": "/api/main.py"
     },
     {
-      "source": "/api/:path*",
+      "source": "/api/login",
       "destination": "/api/main.py"
     }
   ]
