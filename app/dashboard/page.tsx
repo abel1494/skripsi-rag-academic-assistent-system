@@ -46,21 +46,21 @@ function DashboardContent() {
     
     try {
       // Fetch Files
-      const resFiles = await fetch(`/api/files?user_id=${uid}`);
+      const resFiles = await fetch(`https://rag-backend-skripsi.vercel.app/files?user_id=${uid}`);
       if (resFiles.ok) {
         const data = await resFiles.json();
         setUploadedFiles(data && data.length > 0 ? Array.from(new Set(data.map((item: any) => item.file_name))) as string[] : []);
       }
 
       // Fetch Chat History
-      const resHist = await fetch(`/api/chat-history?session_id=${sid}`);
+      const resHist = await fetch(`https://rag-backend-skripsi.vercel.app/chat-history?session_id=${sid}`);
       if (resHist.ok) {
         const data = await resHist.json();
         setChatHistory(data ? data.map((item: any) => ({ role: item.role, content: item.content })) : []);
       }
 
       // Fetch Quiz History
-      const resQuiz = await fetch(`/api/quiz-history?session_id=${sid}`);
+      const resQuiz = await fetch(`https://rag-backend-skripsi.vercel.app/quiz-history?session_id=${sid}`);
       if (resQuiz.ok) {
         const quizData = await resQuiz.json();
         setQuizSessionHistory(quizData || []);
@@ -105,7 +105,7 @@ function DashboardContent() {
     if (selectedFiles.length === 0) return alert("Pilih dokumen di sidebar kiri!");
     setIsQuizLoading(true);
     try {
-      const res = await fetch("/api/generate-quiz", {
+      const res = await fetch("https://rag-backend-skripsi.vercel.app/generate-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -129,7 +129,7 @@ function DashboardContent() {
     if (!answerToProcess) return;
     setIsChecking(true);
     try {
-      const res = await fetch("/api/check-answer", {
+      const res = await fetch("https://rag-backend-skripsi.vercel.app/check-answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -162,7 +162,7 @@ function DashboardContent() {
     } else {
       const finalScore = Math.round(quizScores.reduce((a, b) => a + b, 0) / quizQuestions.length);
       try {
-        await fetch("/api/save-quiz-history", {
+        await fetch("https://rag-backend-skripsi.vercel.app/save-quiz-history", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -186,7 +186,7 @@ function DashboardContent() {
     const formData = new FormData();
     formData.append("user_id", userId!);
     Array.from(e.target.files as FileList).forEach(f => formData.append("files", f));
-    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const res = await fetch("https://rag-backend-skripsi.vercel.app/upload", { method: "POST", body: formData });
     const data = await res.json();
     setUploadedFiles(prev => Array.from(new Set([...prev, ...data.files])));
     setIsUploading(false);
@@ -196,7 +196,7 @@ function DashboardContent() {
     e.preventDefault(); if (!question.trim()) return;
     const q = question; setQuestion(""); setChatHistory(p => [...p, {role: "user", content: q}]); setIsChatLoading(true);
     try {
-      const res = await fetch("api/chat", {
+      const res = await fetch("https://rag-backend-skripsi.vercel.app/chat", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ question: q, file_name: selectedFiles, user_id: userId, session_id: sessionId })
