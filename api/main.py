@@ -25,11 +25,11 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 ML_API = "https://alsyabella-ml-rag-skripsi.hf.space"
 
+app = FastAPI()
+
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 groq_client = Groq(api_key=GROQ_API_KEY)
 timeout=60.0 
-
-app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
