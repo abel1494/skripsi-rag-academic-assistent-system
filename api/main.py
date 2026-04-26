@@ -27,6 +27,10 @@ ML_API = "https://alsyabella-ml-rag-skripsi.hf.space"
 
 app = FastAPI()
 
+@app.get("/api/hello")
+def hello():
+    return {"status": "Backend nyala, Bella!"}
+
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 groq_client = Groq(api_key=GROQ_API_KEY)
 timeout=60.0 
