@@ -22,7 +22,7 @@ export default function HomePage() {
   //session
   const fetchSessions = async (uid: string) => {
     try {
-      const res = await fetch(`/api/sessions?user_id=${uid}`);
+      const res = await fetch(`https://rag-backend-skripsi.vercel.app/sessions?user_id=${uid}`);
       if (res.ok) {
         const data = await res.json();
         setSessions(data || []);
@@ -35,7 +35,7 @@ export default function HomePage() {
   const handleNewSession = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/create-session?user_id=${userId}`, { method: "POST" });
+      const res = await fetch(`https://rag-backend-skripsi.vercel.app/create-session?user_id=${userId}`, { method: "POST" });
       const data = await res.json();
       if (data?.[0]?.id) {
         localStorage.setItem("current_session_id", data[0].id);
@@ -53,7 +53,7 @@ export default function HomePage() {
     router.push(`/dashboard?session_id=${sessionId}`);
     
     try {
-      await fetch(`/api/update-session-time?session_id=${sessionId}`, { method: "POST" });
+      await fetch(`https://rag-backend-skripsi.vercel.app/update-session-time?session_id=${sessionId}`, { method: "POST" });
     } catch (error) {
       console.error("Gagal update waktu:", error);
     }
