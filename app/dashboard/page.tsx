@@ -178,33 +178,56 @@ function DashboardContent() {
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB] font-sans overflow-hidden text-[#1F2937]">
       {/* Header Updated */}
+      {/* Header - Simbol Only Mode */}
       <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
+          {/* Menu Sidebar (Mobile) */}
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
+          
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer" onClick={() => router.push("/home")}>A</div>
-            <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight hidden xs:block">Asisten Akademik</h1>
+            {/* Logo Inisial A (Klik ke Home) */}
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer hover:bg-blue-700 transition-all shadow-sm" onClick={() => router.push("/home")}>A</div>
+            <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight hidden sm:block">Asisten Akademik</h1>
           </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="lg:hidden p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Buka Kuis">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/></svg>
+          {/* Simbol Kuis (Ikon Lampu/Ide) */}
+          <button 
+            onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} 
+            className="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-all" 
+            title="Buka Evaluasi/Kuis"
+          >
+            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/>
+            </svg>
           </button>
 
-          <button onClick={() => router.push("/home")} className="px-3 md:px-5 py-2 rounded-full bg-blue-600 text-white text-[10px] md:text-xs font-semibold hover:bg-blue-700 transition-all flex items-center">
-            <span className="hidden xs:block">Percakapan Baru</span>
-            <span className="xs:hidden">+ Baru</span>
+          {/* Simbol Percakapan Baru (Ikon Plus Chat) */}
+          <button 
+            onClick={() => router.push("/home")} 
+            className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-md active:scale-90 transition-all"
+            title="Percakapan Baru"
+          >
+            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/>
+            </svg>
           </button>
 
-          <button onClick={() => router.push("/home")} className="w-9 h-9 rounded-full bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm" title="Ke Dashboard">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          {/* Simbol Dashboard/Home (Ikon Rumah) */}
+          <button 
+            onClick={() => router.push("/home")} 
+            className="p-2.5 bg-gray-50 text-gray-500 rounded-full border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
+            title="Ke Dashboard Utama"
+          >
+            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
           </button>
         </div>
       </header>
-
       <div className="flex-1 flex overflow-hidden relative">
         {/* Overlay Mobile */}
         {(isSidebarOpen || isQuizSidebarOpen) && (
