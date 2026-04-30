@@ -1,18 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  /* Warna dari Moodboard Kamu */
   --color-primary: #0057B7;
   --color-secondary: #475569;
   --color-tertiary: #777491;
   --color-neutralBg: #F8FAFC;
 
-  /* Efek Bayangan Lembut */
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Mengatur background default agar langsung pakai warna netral */
 body {
   background-color: var(--color-neutralBg);
   color: var(--color-secondary);
+}
+
+@media (min-width: 400px) {
+  .xs\:inline { display: inline; }
+  .xs\:hidden { display: none; }
+}
+@media (max-width: 399px) {
+  .xs\:inline { display: none; }
+  .xs\:hidden { display: inline; }
 }
