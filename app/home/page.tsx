@@ -71,9 +71,6 @@ export default function HomePage() {
             <h1 className="text-4xl font-black tracking-tight text-gray-900 mb-2">Beranda Asisten</h1>
             <p className="text-gray-500 font-medium">Lanjutkan percakapan belajarmu atau mulai topik baru.</p>
           </div>
-          <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl border-2 border-white shadow-sm">
-            {userId.substring(0, 1).toUpperCase()}
-          </div>
         </div>
 
         {/* MAIN CONTENT */}
