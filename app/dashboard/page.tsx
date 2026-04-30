@@ -231,44 +231,37 @@ function DashboardContent() {
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB] font-sans overflow-hidden text-[#1F2937]">
       {/* Header */}
-      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-      </button>
-      
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer" onClick={() => router.push("/home")}>A</div>
-        <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight hidden xs:block">Asisten Akademik</h1>
-      </div>
+<header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
+  <div className="flex items-center gap-3">
+    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div className="flex items-center gap-2">
+      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer" onClick={() => router.push("/home")}>A</div>
+      <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight truncate hidden sm:block">Asisten Akademik</h1>
     </div>
+  </div>
 
-    <div className="flex items-center gap-2 md:gap-4">
+  <div className="flex items-center gap-2 md:gap-4">
+    {/* Ikon Kuis Baru (Ikon Medali/Brain) */}
+    <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="lg:hidden p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Buka Kuis">
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/></svg>
+    </button>
+
+    {/* Tombol Percakapan Baru - Diperbaiki agar teks tidak hilang di HP */}
+    <button onClick={() => router.push("/home")} className="px-3 md:px-5 py-2 rounded-full bg-blue-600 text-white text-[10px] md:text-xs font-semibold hover:bg-blue-700 transition-all flex items-center gap-2">
+      <span className="hidden xs:inline">Percakapan Baru</span>
+      <span className="xs:hidden">+ Baru</span>
+    </button>
+
+    {/* Ganti Profil User (A) jadi Tombol Home Dashboard */}
+    <button onClick={() => router.push("/home")} className="w-9 h-9 rounded-full bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all" title="Ke Dashboard">
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    </button>
+  </div>
+</header>
       
-      <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="lg:hidden p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Buka Kuis">
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/>
-        </svg>
-      </button>
-
-      
-      <button onClick={() => router.push("/home")} className="px-3 md:px-5 py-2 rounded-full bg-blue-600 text-white text-[10px] md:text-xs font-semibold hover:bg-blue-700 transition-all flex items-center">
-        <span className="hidden xs:block">Percakapan Baru</span>
-        <span className="xs:hidden">+ Baru</span>
-      </button>
-
-      <button 
-        onClick={() => router.push("/home")} 
-        className="w-9 h-9 rounded-full bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
-        title="Kembali ke Beranda"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-        </svg>
-      </button>
-    </div>
-  </header>
-        {/* Overlay Mobile */}
+      {/* Overlay Mobile */}
         {(isSidebarOpen || isQuizSidebarOpen) && (
           <div className="fixed inset-0 bg-black/30 z-20 transition-opacity md:hidden lg:hidden" onClick={() => {setIsSidebarOpen(false); setIsQuizSidebarOpen(false);}} />
         )}
@@ -322,13 +315,28 @@ function DashboardContent() {
           </div>
           
           {/* Input */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#F9FAFB] via-[#F9FAFB] to-transparent">
-            <form onSubmit={handleAsk} className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-100 p-2 flex gap-2">
-              <input value={question} onChange={e => setQuestion(e.target.value)} placeholder="Tanyakan sesuatu..." className="flex-1 px-4 py-3 bg-transparent outline-none text-sm text-gray-700" />
-              <button type="submit" disabled={isChatLoading || !question.trim()} className="bg-blue-600 text-white px-5 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black hover:bg-blue-700 disabled:opacity-40 transition-all uppercase tracking-widest">KIRIM</button>
-            </form>
-          </div>
-        </main>
+          {/* Container Utama Chat Area */}
+<main className="flex-1 flex flex-col relative bg-[#F9FAFB] w-full min-w-0 h-full">
+  <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-24 pt-6 custom-scrollbar">
+    {/* ... isi chat history ... */}
+    <div ref={chatEndRef} />
+  </div>
+  
+  {/* Input Bar - Menggunakan fixed atau sticky untuk stabilitas di HP */}
+  <div className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#F9FAFB] via-[#F9FAFB] to-transparent z-10">
+    <form onSubmit={handleAsk} className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 p-2 flex gap-2">
+      <input 
+        value={question} 
+        onChange={e => setQuestion(e.target.value)} 
+        placeholder="Tanyakan sesuatu..." 
+        className="flex-1 px-4 py-3 bg-transparent outline-none text-sm text-gray-700" 
+      />
+      <button type="submit" disabled={isChatLoading || !question.trim()} className="bg-blue-600 text-white px-4 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black hover:bg-blue-700 disabled:opacity-40 transition-all uppercase tracking-widest shrink-0">
+        KIRIM
+      </button>
+    </form>
+  </div>
+</main>
 
         {/* Sidebar Kanan - Quiz */}
         <aside className={`${isQuizSidebarOpen ? "translate-x-0" : "translate-x-full"} lg:translate-x-0 fixed lg:relative right-0 w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 p-6 flex flex-col z-20 transition-transform duration-300 shadow-xl lg:shadow-none overflow-hidden`}>
