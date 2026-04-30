@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       if (response.ok && data.user_id) {
         localStorage.setItem("user_id", data.user_id);
-        router.push("/dashboard");
+        router.push("/home");
       } else {
         alert("Login Gagal: " + (data.error || "Cek email/password atau Register dulu."));
       }
