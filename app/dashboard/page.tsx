@@ -234,23 +234,40 @@ function DashboardContent() {
       <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer" onClick={() => router.push("/home")}>A</div>
-            <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight truncate max-w-[120px] md:max-w-none">Asisten Akademik</h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 md:gap-4">
-          <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="lg:hidden p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Buka Kuis">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-          </button>
-          <button onClick={() => router.push("/home")} className="hidden sm:block px-5 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-all">Percakapan Baru</button>
-          <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm border border-blue-100">{userId.substring(0, 1).toUpperCase()}</div>
-        </div>
-      </header>
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer" onClick={() => router.push("/home")}>A</div>
+        <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight hidden xs:block">Asisten Akademik</h1>
+      </div>
+    </div>
 
-      <div className="flex-1 flex overflow-hidden relative">
+    <div className="flex items-center gap-2 md:gap-4">
+      
+      <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="lg:hidden p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Buka Kuis">
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/>
+        </svg>
+      </button>
+
+      
+      <button onClick={() => router.push("/home")} className="px-3 md:px-5 py-2 rounded-full bg-blue-600 text-white text-[10px] md:text-xs font-semibold hover:bg-blue-700 transition-all flex items-center">
+        <span className="hidden xs:block">Percakapan Baru</span>
+        <span className="xs:hidden">+ Baru</span>
+      </button>
+
+      <button 
+        onClick={() => router.push("/home")} 
+        className="w-9 h-9 rounded-full bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
+        title="Kembali ke Beranda"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+      </button>
+    </div>
+  </header>
         {/* Overlay Mobile */}
         {(isSidebarOpen || isQuizSidebarOpen) && (
           <div className="fixed inset-0 bg-black/30 z-20 transition-opacity md:hidden lg:hidden" onClick={() => {setIsSidebarOpen(false); setIsQuizSidebarOpen(false);}} />
