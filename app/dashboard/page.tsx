@@ -26,7 +26,7 @@ function DashboardContent() {
   const [question, setQuestion] = useState("");
   const [chatHistory, setChatHistory] = useState<{role: string, content: string}[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null); // Untuk Auto-scroll
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // State File & Upload
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -48,7 +48,6 @@ function DashboardContent() {
   const [quizReviewData, setQuizReviewData] = useState<any[]>([]); 
   const [quizSessionHistory, setQuizSessionHistory] = useState<any[]>([]);
 
-  // Fungsi Auto-scroll Chat
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -57,23 +56,19 @@ function DashboardContent() {
     scrollToBottom();
   }, [chatHistory, isChatLoading]);
 
-  // Fetch Data
   const fetchData = async (uid: string, sid: string) => {
     if (!sid || sid === "default-session") return;
     try {
-      // Fetch Files
       const resFiles = await fetch(`https://rag-backend-skripsi.vercel.app/files?user_id=${uid}`);
       if (resFiles.ok) {
         const data = await resFiles.json();
         setUploadedFiles(data && data.length > 0 ? Array.from(new Set(data.map((item: any) => item.file_name))) as string[] : []);
       }
-      // Fetch Chat History
       const resHist = await fetch(`https://rag-backend-skripsi.vercel.app/chat-history?session_id=${sid}`);
       if (resHist.ok) {
         const data = await resHist.json();
         setChatHistory(data ? data.map((item: any) => ({ role: item.role, content: item.content })) : []);
       }
-      // Fetch Quiz History
       const resQuiz = await fetch(`https://rag-backend-skripsi.vercel.app/quiz-history?session_id=${sid}`);
       if (resQuiz.ok) {
         const quizData = await resQuiz.json();
@@ -101,40 +96,22 @@ function DashboardContent() {
     }
   }, [searchParams]);
 
-  //  Logika Kuis 
   const startQuiz = async () => {
-  if (selectedFiles.length === 0) return alert("Pilih dokumen di sidebar kiri!");
-  
-  setQuizQuestions([]); 
-  setQuizFeedback(null); 
-  setQuizScores([]);    
-  setQuizReviewData([]); 
-  setCurrentIdx(0);     
-  setUserAnswer("");    
-  
-  setIsQuizLoading(true);
-  try {
-    const res = await fetch("https://rag-backend-skripsi.vercel.app/generate-quiz", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        file_name: selectedFiles, 
-        user_id: userId,
-        num_questions: numQuestions,
-        quiz_type: quizType 
-      })
-    });
-    const data = await res.json();
-    if (data.quiz && data.quiz.length > 0) {
-      setQuizQuestions(data.quiz);
-      setQuizMode("playing"); 
-    }
-  } catch (e) { 
-    alert("Gagal membuat kuis."); 
-  } finally { 
-    setIsQuizLoading(false); 
-  }
-};
+    if (selectedFiles.length === 0) return alert("Pilih dokumen di sidebar kiri!");
+    setQuizQuestions([]); setQuizFeedback(null); setQuizScores([]); setQuizReviewData([]); setCurrentIdx(0); setUserAnswer("");
+    setIsQuizLoading(true);
+    try {
+      const res = await fetch("https://rag-backend-skripsi.vercel.app/generate-quiz", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file_name: selectedFiles, user_id: userId, num_questions: numQuestions, quiz_type: quizType })
+      });
+      const data = await res.json();
+      if (data.quiz && data.quiz.length > 0) {
+        setQuizQuestions(data.quiz);
+        setQuizMode("playing");
+      }
+    } catch (e) { alert("Gagal membuat kuis."); } finally { setIsQuizLoading(false); }
+  };
 
   const handleCheck = async (selectedOption?: string) => {
     const answerToProcess = quizType === "pg" ? selectedOption : userAnswer;
@@ -142,56 +119,31 @@ function DashboardContent() {
     setIsChecking(true);
     try {
       const res = await fetch("https://rag-backend-skripsi.vercel.app/check-answer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          file_name: selectedFiles[0],
-          question_id: quizQuestions[currentIdx].id,
-          user_answer: answerToProcess,
-          quiz: quizQuestions
-        })
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, file_name: selectedFiles[0], question_id: quizQuestions[currentIdx].id, user_answer: answerToProcess, quiz: quizQuestions })
       });
       const data = await res.json();
       setQuizScores(prev => [...prev, data.similarity]);
       setQuizFeedback({ ...data, user_ans: answerToProcess });
-      setQuizReviewData(prev => [...prev, {
-        question: quizQuestions[currentIdx].question,
-        user_answer: answerToProcess,
-        reference: data.reference_answer || data.reference,
-        similarity: data.similarity,
-        feedback: data.feedback
-      }]);
-    } catch (e) { alert("Gagal mengevaluasi."); }
-    finally { setIsChecking(false); }
+      setQuizReviewData(prev => [...prev, { question: quizQuestions[currentIdx].question, user_answer: answerToProcess, reference: data.reference_answer || data.reference, similarity: data.similarity, feedback: data.feedback }]);
+    } catch (e) { alert("Gagal mengevaluasi."); } finally { setIsChecking(false); }
   };
 
   const handleNext = async () => {
     if (currentIdx < quizQuestions.length - 1) {
-      setQuizFeedback(null);
-      setUserAnswer("");
-      setCurrentIdx(prev => prev + 1);
+      setQuizFeedback(null); setUserAnswer(""); setCurrentIdx(prev => prev + 1);
     } else {
       const finalScore = Math.round(quizScores.reduce((a, b) => a + b, 0) / quizQuestions.length);
       try {
         await fetch("https://rag-backend-skripsi.vercel.app/save-quiz-history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            user_id: userId,
-            session_id: sessionId,
-            quiz_type: quizType,
-            num_questions: quizQuestions.length,
-            score: finalScore,
-            review_data: quizReviewData
-          })
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userId, session_id: sessionId, quiz_type: quizType, num_questions: quizQuestions.length, score: finalScore, review_data: quizReviewData })
         });
       } catch (err) { console.error("Gagal menyimpan riwayat kuis:", err); }
       setQuizMode("result");
     }
   };
 
-  // Logika Chat & Upload 
   const handleFileUpload = async (e: any) => {
     setIsUploading(true);
     const formData = new FormData();
@@ -201,28 +153,23 @@ function DashboardContent() {
       const res = await fetch("https://rag-backend-skripsi.vercel.app/upload", { method: "POST", body: formData });
       const data = await res.json();
       setUploadedFiles(prev => Array.from(new Set([...prev, ...data.files])));
-    } catch (err) { alert("Gagal mengunggah file."); }
-    finally { setIsUploading(false); }
+    } catch (err) { alert("Gagal mengunggah file."); } finally { setIsUploading(false); }
   };
 
   const handleAsk = async (e: any) => {
     e.preventDefault(); 
     if (!question.trim()) return;
-    const q = question; 
-    setQuestion(""); 
+    const q = question; setQuestion(""); 
     setChatHistory(p => [...p, {role: "user", content: q}]); 
     setIsChatLoading(true);
     try {
       const res = await fetch("https://rag-backend-skripsi.vercel.app/chat", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
+        method: "POST", headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ question: q, file_name: selectedFiles, user_id: userId, session_id: sessionId })
       });
       const data = await res.json();
       setChatHistory(p => [...p, {role: "ai", content: data.answer}]);
-    } catch (e) { 
-      setChatHistory(p => [...p, {role: "ai", content: "Koneksi terputus. Silakan coba lagi."}]); 
-    }
+    } catch (e) { setChatHistory(p => [...p, {role: "ai", content: "Koneksi terputus. Silakan coba lagi."}]); }
     finally { setIsChatLoading(false); }
   };
 
@@ -230,38 +177,36 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB] font-sans overflow-hidden text-[#1F2937]">
-      {/* Header */}
-<header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
-  <div className="flex items-center gap-3">
-    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div className="flex items-center gap-2">
-      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer" onClick={() => router.push("/home")}>A</div>
-      <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight truncate hidden sm:block">Asisten Akademik</h1>
-    </div>
-  </div>
+      {/* Header Updated */}
+      <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer" onClick={() => router.push("/home")}>A</div>
+            <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight hidden xs:block">Asisten Akademik</h1>
+          </div>
+        </div>
 
-  <div className="flex items-center gap-2 md:gap-4">
-    {/* Ikon Kuis Baru (Ikon Medali/Brain) */}
-    <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="lg:hidden p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Buka Kuis">
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/></svg>
-    </button>
+        <div className="flex items-center gap-2 md:gap-4">
+          <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="lg:hidden p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Buka Kuis">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/></svg>
+          </button>
 
-    {/* Tombol Percakapan Baru - Diperbaiki agar teks tidak hilang di HP */}
-    <button onClick={() => router.push("/home")} className="px-3 md:px-5 py-2 rounded-full bg-blue-600 text-white text-[10px] md:text-xs font-semibold hover:bg-blue-700 transition-all flex items-center gap-2">
-      <span className="hidden xs:inline">Percakapan Baru</span>
-      <span className="xs:hidden">+ Baru</span>
-    </button>
+          <button onClick={() => router.push("/home")} className="px-3 md:px-5 py-2 rounded-full bg-blue-600 text-white text-[10px] md:text-xs font-semibold hover:bg-blue-700 transition-all flex items-center">
+            <span className="hidden xs:block">Percakapan Baru</span>
+            <span className="xs:hidden">+ Baru</span>
+          </button>
 
-    {/* Ganti Profil User (A) jadi Tombol Home Dashboard */}
-    <button onClick={() => router.push("/home")} className="w-9 h-9 rounded-full bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all" title="Ke Dashboard">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-    </button>
-  </div>
-</header>
-      
-      {/* Overlay Mobile */}
+          <button onClick={() => router.push("/home")} className="w-9 h-9 rounded-full bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm" title="Ke Dashboard">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Overlay Mobile */}
         {(isSidebarOpen || isQuizSidebarOpen) && (
           <div className="fixed inset-0 bg-black/30 z-20 transition-opacity md:hidden lg:hidden" onClick={() => {setIsSidebarOpen(false); setIsQuizSidebarOpen(false);}} />
         )}
@@ -285,9 +230,9 @@ function DashboardContent() {
           </div>
         </aside>
 
-        {/* Area Utama - Chat */}
+        {/* Area Utama - Chat with Sticky Input */}
         <main className="flex-1 flex flex-col relative bg-[#F9FAFB] w-full min-w-0">
-          <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-32 pt-6 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-4 pt-6 custom-scrollbar">
             <div className="max-w-3xl mx-auto space-y-6">
               {chatHistory.length === 0 && (
                 <div className="text-center mt-16 md:mt-24 py-10 px-4">
@@ -310,33 +255,18 @@ function DashboardContent() {
                   <div className="text-[11px] font-bold text-blue-600 animate-pulse bg-white px-4 py-2 rounded-full border border-blue-100 shadow-sm">AI sedang menganalisis dokumen...</div>
                 </div>
               )}
-              <div ref={chatEndRef} /> {/* Anchor Auto-scroll */}
+              <div ref={chatEndRef} />
             </div>
           </div>
           
-          {/* Input */}
-          {/* Container Utama Chat Area */}
-<main className="flex-1 flex flex-col relative bg-[#F9FAFB] w-full min-w-0 h-full">
-  <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-24 pt-6 custom-scrollbar">
-    {/* ... isi chat history ... */}
-    <div ref={chatEndRef} />
-  </div>
-  
-  {/* Input Bar - Menggunakan fixed atau sticky untuk stabilitas di HP */}
-  <div className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#F9FAFB] via-[#F9FAFB] to-transparent z-10">
-    <form onSubmit={handleAsk} className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 p-2 flex gap-2">
-      <input 
-        value={question} 
-        onChange={e => setQuestion(e.target.value)} 
-        placeholder="Tanyakan sesuatu..." 
-        className="flex-1 px-4 py-3 bg-transparent outline-none text-sm text-gray-700" 
-      />
-      <button type="submit" disabled={isChatLoading || !question.trim()} className="bg-blue-600 text-white px-4 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black hover:bg-blue-700 disabled:opacity-40 transition-all uppercase tracking-widest shrink-0">
-        KIRIM
-      </button>
-    </form>
-  </div>
-</main>
+          {/* Sticky Input Bar */}
+          <div className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#F9FAFB] via-[#F9FAFB] to-transparent z-10">
+            <form onSubmit={handleAsk} className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 p-2 flex gap-2">
+              <input value={question} onChange={e => setQuestion(e.target.value)} placeholder="Tanyakan sesuatu..." className="flex-1 px-4 py-3 bg-transparent outline-none text-sm text-gray-700" />
+              <button type="submit" disabled={isChatLoading || !question.trim()} className="bg-blue-600 text-white px-4 md:px-8 py-3 rounded-xl text-[10px] md:text-xs font-black hover:bg-blue-700 disabled:opacity-40 transition-all uppercase tracking-widest shrink-0">KIRIM</button>
+            </form>
+          </div>
+        </main>
 
         {/* Sidebar Kanan - Quiz */}
         <aside className={`${isQuizSidebarOpen ? "translate-x-0" : "translate-x-full"} lg:translate-x-0 fixed lg:relative right-0 w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 p-6 flex flex-col z-20 transition-transform duration-300 shadow-xl lg:shadow-none overflow-hidden`}>
