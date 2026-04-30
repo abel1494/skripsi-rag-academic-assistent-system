@@ -20,7 +20,7 @@ function DashboardContent() {
   const [userId, setUserId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState(""); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
-  const [isQuizSidebarOpen, setIsQuizSidebarOpen] = useState(false); 
+  const [isQuizSidebarOpen, setIsQuizSidebarOpen] = useState(true); 
   
   // State Chat
   const [question, setQuestion] = useState("");
@@ -293,8 +293,16 @@ function DashboardContent() {
 
         {/* Sidebar Kanan - Quiz */}
         <aside className={`${isQuizSidebarOpen ? "translate-x-0" : "translate-x-full"} lg:translate-x-0 fixed lg:relative right-0 w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 p-6 flex flex-col z-20 transition-transform duration-300 shadow-xl lg:shadow-none overflow-hidden`}>
-          <h2 className="font-black text-xs text-gray-400 uppercase tracking-[0.2em] mb-6 border-b border-gray-50 pb-3 text-center shrink-0">Evaluasi Belajar</h2>
-
+          <button 
+            onClick={() => setIsQuizSidebarOpen(false)} 
+            className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        
+          <h2 className="font-black text-xs text-gray-400 uppercase tracking-[0.2em] mb-6 border-b border-gray-50 pb-3 text-center shrink-0">
+            Evaluasi Belajar
+          </h2>
           {quizMode === "setup" && (
             <div className="flex flex-col h-full overflow-hidden animate-in fade-in duration-500">
               <div className="space-y-6 shrink-0">
