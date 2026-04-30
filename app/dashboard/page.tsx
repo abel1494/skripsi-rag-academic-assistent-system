@@ -103,27 +103,38 @@ function DashboardContent() {
 
   //  Logika Kuis 
   const startQuiz = async () => {
-    if (selectedFiles.length === 0) return alert("Pilih dokumen di sidebar kiri!");
-    setIsQuizLoading(true);
-    try {
-      const res = await fetch("https://rag-backend-skripsi.vercel.app/generate-quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          file_name: selectedFiles, 
-          user_id: userId,
-          num_questions: numQuestions,
-          quiz_type: quizType 
-        })
-      });
-      const data = await res.json();
-      if (data.quiz && data.quiz.length > 0) {
-        setQuizQuestions(data.quiz);
-        setQuizMode("playing");
-      }
-    } catch (e) { alert("Gagal membuat kuis."); }
-    finally { setIsQuizLoading(false); }
-  };
+  if (selectedFiles.length === 0) return alert("Pilih dokumen di sidebar kiri!");
+  
+  setQuizQuestions([]); 
+  setQuizFeedback(null); 
+  setQuizScores([]);    
+  setQuizReviewData([]); 
+  setCurrentIdx(0);     
+  setUserAnswer("");    
+  
+  setIsQuizLoading(true);
+  try {
+    const res = await fetch("https://rag-backend-skripsi.vercel.app/generate-quiz", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        file_name: selectedFiles, 
+        user_id: userId,
+        num_questions: numQuestions,
+        quiz_type: quizType 
+      })
+    });
+    const data = await res.json();
+    if (data.quiz && data.quiz.length > 0) {
+      setQuizQuestions(data.quiz);
+      setQuizMode("playing"); 
+    }
+  } catch (e) { 
+    alert("Gagal membuat kuis."); 
+  } finally { 
+    setIsQuizLoading(false); 
+  }
+};
 
   const handleCheck = async (selectedOption?: string) => {
     const answerToProcess = quizType === "pg" ? selectedOption : userAnswer;
