@@ -113,26 +113,6 @@ function DashboardContent() {
     }
   }, [searchParams]);
 
-  // Auto Title
-  const updateSessionTitle = async (aiFirstResponse: string) => {
-    try {
-      const res = await fetch("https://rag-backend-skripsi.vercel.app/update-title", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          session_id: sessionId, 
-          ai_response: aiFirstResponse, 
-          max_words: 5 
-        })
-      });
-      if (res.ok) {
-        console.log("Judul berhasil diperbarui otomatis berdasarkan respon AI.");
-      }
-    } catch (err) {
-      console.error("Gagal update judul.");
-    }
-  };
-
   const handleNewChat = async () => {
     const newSessionId = crypto.randomUUID(); 
     
@@ -143,16 +123,15 @@ function DashboardContent() {
         body: JSON.stringify({
           session_id: newSessionId, 
           user_id: userId,
+          title: "Sesi Belajar Baru"
         }),
       });
   
       if (res.ok) {
         setChatHistory([]);
         setQuestion("");
-        
         setSessionId(newSessionId);
         localStorage.setItem("current_session_id", newSessionId);
-        
         router.replace(`/dashboard?session_id=${newSessionId}`);
       }
     } catch (error) {
@@ -171,8 +150,8 @@ function DashboardContent() {
   
       if (res.ok) {
         alert("File berhasil dihapus!");
-        if (typeof fetchFiles === 'function') fetchFiles(); 
-        else window.location.reload(); 
+        // Me-refresh halaman agar daftar file terupdate secara bersih dan menghindari error TypeScript
+        window.location.reload(); 
       } else {
         alert("Gagal menghapus file.");
       }
@@ -251,9 +230,6 @@ function DashboardContent() {
     if (!question.trim()) return;
     const q = question; setQuestion(""); 
     
-    // Simpan status apakah ini chat pertama
-    const isFirstChat = chatHistory.length === 0;
-    
     setChatHistory(p => [...p, {role: "user", content: q}]); 
     setIsChatLoading(true);
     try {
@@ -324,7 +300,7 @@ function DashboardContent() {
                   <span className="text-xs font-semibold text-gray-600 truncate group-hover:text-blue-600">
                     {f}
                   </span>
-                </label>          
+                </label>           
                 <button
                   onClick={(e) => {
                     e.preventDefault(); 
@@ -420,7 +396,7 @@ function DashboardContent() {
                           const getScoreColor = (val: number) => {
                             if (val >= 80) return "text-emerald-500"; 
                             if (val >= 60) return "text-orange-500";  
-                            return "text-rose-500";                   
+                            return "text-rose-500";                    
                           };
                           const getBorderColor = (val: number) => {
                             if (val >= 80) return "border-emerald-100 bg-emerald-50/20";
