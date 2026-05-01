@@ -133,18 +133,31 @@ function DashboardContent() {
     }
   };
 
-  const handleNewChat = () => {
-    setChatHistory([]);
-    setQuizQuestions([]);
-    setQuizMode("setup");
-    setQuizFeedback(null);
-    setQuizScores([]);
-    setQuizReviewData([]);
-    setQuestion("");
+  const handleNewChat = async () => {
     const newSessionId = crypto.randomUUID(); 
-    setSessionId(newSessionId);
-    localStorage.setItem("current_session_id", newSessionId);
-    router.replace(`/dashboard?session_id=${newSessionId}`);
+    
+    try {
+      const res = await fetch("https://rag-backend-skripsi.vercel.app/create-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: newSessionId, 
+          user_id: userId,
+        }),
+      });
+  
+      if (res.ok) {
+        setChatHistory([]);
+        setQuestion("");
+        
+        setSessionId(newSessionId);
+        localStorage.setItem("current_session_id", newSessionId);
+        
+        router.replace(`/dashboard?session_id=${newSessionId}`);
+      }
+    } catch (error) {
+      console.error("Gagal sinkronisasi sesi:", error);
+    }
   };
   
   const startQuiz = async () => {
