@@ -229,10 +229,6 @@ function DashboardContent() {
       const data = await res.json();
       setChatHistory(p => [...p, {role: "ai", content: data.answer}]);
 
-      // Jika chat pertama, langsung suruh AI buat judul dari jawabannya sendiri
-      if (isFirstChat && data.answer) {
-        updateSessionTitle(data.answer);
-      }
     } catch (e) { setChatHistory(p => [...p, {role: "ai", content: "Koneksi terputus."}]); }
     finally { setIsChatLoading(false); }
   };
