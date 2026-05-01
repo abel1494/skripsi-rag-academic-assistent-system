@@ -18,7 +18,7 @@ function DashboardContent() {
   
   // State Utama
   const [userId, setUserId] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string>("User"); // State untuk menyimpan nama user
+  const [userName, setUserName] = useState<string>("User"); 
   const [sessionId, setSessionId] = useState(""); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
   const [isQuizSidebarOpen, setIsQuizSidebarOpen] = useState(false); 
@@ -53,6 +53,7 @@ function DashboardContent() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // 1. Responsivitas Layar (Auto-toggle Sidebar Kuis)
   useEffect(() => {
     const checkDevice = () => {
       if (window.innerWidth >= 1024) { 
@@ -64,10 +65,12 @@ function DashboardContent() {
     checkDevice();
   }, []);
   
+  // 2. Auto Scroll Chat (Dipicu chat baru atau kuis dibuka/tutup)
   useEffect(() => {
     scrollToBottom();
   }, [chatHistory, isChatLoading, isQuizSidebarOpen]);
 
+  // 3. Fetch Data Awal
   const fetchData = async (uid: string, sid: string) => {
     if (!sid || sid === "default-session") return;
     try {
@@ -91,9 +94,10 @@ function DashboardContent() {
     }
   };
 
+  // 4. Inisialisasi User & Sesi
   useEffect(() => {
     const storedUserId = localStorage.getItem("user_id");
-    const storedUserName = localStorage.getItem("user_name"); // Ambil nama dari localStorage
+    const storedUserName = localStorage.getItem("user_name");
 
     if (!storedUserId) {
       router.push("/login");
@@ -101,7 +105,6 @@ function DashboardContent() {
     }
     setUserId(storedUserId);
     
-    // Jika ada nama yang tersimpan, gunakan nama tersebut
     if (storedUserName) {
       setUserName(storedUserName);
     }
@@ -114,6 +117,7 @@ function DashboardContent() {
     }
   }, [searchParams]);
 
+  // 5. Update Judul Sesi Otomatis dari Respon AI
   const updateSessionTitle = async (aiFirstResponse: string) => {
     try {
       await fetch("https://rag-backend-skripsi.vercel.app/update-title", {
@@ -126,6 +130,7 @@ function DashboardContent() {
     }
   };
 
+  // 6. Reset Percakapan (Tanpa Buang File)
   const handleNewChat = () => {
     setChatHistory([]);
     setQuizQuestions([]);
@@ -140,9 +145,10 @@ function DashboardContent() {
     router.replace(`/dashboard?session_id=${newSessionId}`);
   };
   
+  // 7. Logika Kuis
   const startQuiz = async () => {
     if (selectedFiles.length === 0) {
-      alert("Pilih dokumen di sidebar kiri dulu ya untuk membuat kuis! 😊");
+      alert("Maaf, pilih minimal satu dokumen di sidebar kiri dulu ya untuk membuat kuis! 😊");
       return;
     }
     setQuizQuestions([]); setQuizFeedback(null); setQuizScores([]); setQuizReviewData([]); setCurrentIdx(0); setUserAnswer("");
@@ -187,11 +193,12 @@ function DashboardContent() {
           body: JSON.stringify({ user_id: userId, session_id: sessionId, quiz_type: quizType, num_questions: quizQuestions.length, score: finalScore, review_data: quizReviewData })
         });
         fetchData(userId!, sessionId);
-      } catch (err) { console.error("Gagal simpan riwayat:", err); }
+      } catch (err) { console.error("Gagal simpan riwayat."); }
       setQuizMode("result");
     }
   };
 
+  // 8. Upload & Chat
   const handleFileUpload = async (e: any) => {
     setIsUploading(true);
     const formData = new FormData();
@@ -229,6 +236,7 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB] font-sans overflow-hidden text-[#1F2937]">
+      {/* Header */}
       <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
@@ -256,10 +264,12 @@ function DashboardContent() {
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
+        {/* Overlay Mobile */}
         {(isSidebarOpen || (isQuizSidebarOpen && window.innerWidth < 1024)) && (
           <div className="fixed inset-0 bg-black/30 z-20 md:hidden" onClick={() => {setIsSidebarOpen(false); setIsQuizSidebarOpen(false);}} />
         )}
 
+        {/* Sidebar Kiri */}
         <aside className={`${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:relative w-72 h-[calc(100vh-64px)] bg-white border-r border-gray-100 flex flex-col z-20 transition-transform duration-300`}>
           <div className="p-5">
             <h2 className="font-bold text-xs text-gray-400 uppercase tracking-widest mb-4">Materi Anda</h2>
@@ -278,6 +288,7 @@ function DashboardContent() {
           </div>
         </aside>
 
+        {/* Area Utama */}
         <main className="flex-1 flex flex-col relative bg-[#F9FAFB] w-full min-w-0 transition-all duration-300 overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-4 pt-6 custom-scrollbar">
             <div className="max-w-4xl mx-auto space-y-6">
@@ -286,15 +297,14 @@ function DashboardContent() {
                   <div className="inline-block p-4 bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
                     <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                   </div>
-                  {/* SAPAAN DINAMIS MENGGUNAKAN userName */}
                   <h2 className="text-2xl font-black text-gray-900 tracking-tight text-center">Halo, {userName}!</h2>
-                  <p className="text-gray-500 text-sm mt-2 text-center">Pilih dokumen di kiri untuk mulai belajar.</p>
+                  <p className="text-gray-500 text-sm mt-2 text-center">Silakan pilih dokumen di kiri untuk mulai belajar.</p>
                 </div>
               )}
               {chatHistory.map((c, i) => (
                 <div key={i} className={`flex ${c.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`p-4 md:p-5 rounded-2xl text-[14px] shadow-sm max-w-[85%] ${c.role === "user" ? "bg-blue-600 text-white rounded-br-none" : "bg-white border border-gray-200 text-gray-800 rounded-bl-none"}`}>
-                    {c.role === "user" ? <p className="whitespace-pre-wrap">{c.content}</p> : <div className="prose prose-sm max-w-none space-y-4 [&>ul]:list-disc [&>ul]:ml-5"><ReactMarkdown>{c.content}</ReactMarkdown></div>}
+                  <div className={`p-4 md:p-5 rounded-2xl text-[14px] shadow-sm max-w-[85%] ${c.role === "user" ? "bg-blue-600 text-white rounded-br-none" : "bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)]"}`}>
+                    {c.role === "user" ? <p className="whitespace-pre-wrap">{c.content}</p> : <div className="prose prose-sm max-w-none space-y-4 [&>ul]:list-disc [&>ul]:ml-5 [&>ol]:list-decimal [&>ol]:ml-5"><ReactMarkdown>{c.content}</ReactMarkdown></div>}
                   </div>
                 </div>
               ))}
@@ -312,6 +322,7 @@ function DashboardContent() {
           </div>
         </main>
 
+        {/* SIDEBAR KUIS */}
         {isQuizSidebarOpen && (
           <aside className="w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 flex flex-col z-20 transition-all duration-300 animate-in slide-in-from-right shrink-0">
             <div className="p-6 flex flex-col h-full overflow-hidden">
