@@ -52,7 +52,7 @@ function DashboardContent() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // RESPONSIVE LOGIC: Laptop buka otomatis
+  // Responsive
   useEffect(() => {
     const checkDevice = () => {
       if (window.innerWidth >= 1024) { 
@@ -64,7 +64,7 @@ function DashboardContent() {
     checkDevice();
   }, []);
   
-  // AUTO SCROLL
+  // auto scroll
   useEffect(() => {
     scrollToBottom();
   }, [chatHistory, isChatLoading, isQuizSidebarOpen]);
@@ -107,25 +107,29 @@ function DashboardContent() {
     }
   }, [searchParams]);
 
+  // new chat 
   const handleNewChat = () => {
-  setChatHistory([]);
-  setQuizQuestions([]);
-  setQuizMode("setup");
-  setQuizFeedback(null);
-  setQuizScores([]);
-  setQuizReviewData([]);
-  setQuestion("");
+    setChatHistory([]);
+    setQuizQuestions([]);
+    setQuizMode("setup");
+    setQuizFeedback(null);
+    setQuizScores([]);
+    setQuizReviewData([]);
+    setQuestion("");
 
-  const newSessionId = crypto.randomUUID(); 
-  setSessionId(newSessionId);
-  localStorage.setItem("current_session_id", newSessionId);
+    const newSessionId = crypto.randomUUID(); 
+    setSessionId(newSessionId);
+    localStorage.setItem("current_session_id", newSessionId);
 
-  router.replace(`/dashboard?session_id=${newSessionId}`);
-
-};
+    router.replace(`/dashboard?session_id=${newSessionId}`);
+  };
   
   const startQuiz = async () => {
-    if (selectedFiles.length === 0) return alert("Pilih dokumen dulu!");
+    if (selectedFiles.length === 0) {
+      alert("Pilih minimal satu dokumen di sidebar kiri dulu ya untuk membuat kuis!");
+      return;
+    }
+
     setQuizQuestions([]); setQuizFeedback(null); setQuizScores([]); setQuizReviewData([]); setCurrentIdx(0); setUserAnswer("");
     setIsQuizLoading(true);
     try {
@@ -167,6 +171,8 @@ function DashboardContent() {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ user_id: userId, session_id: sessionId, quiz_type: quizType, num_questions: quizQuestions.length, score: finalScore, review_data: quizReviewData })
         });
+        // Refresh riwayat kuis
+        fetchData(userId!, sessionId);
       } catch (err) { console.error("Gagal simpan riwayat:", err); }
       setQuizMode("result");
     }
@@ -205,7 +211,7 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB] font-sans overflow-hidden text-[#1F2937]">
-      {/* Header */}
+      {/* Header Updated */}
       <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
@@ -218,13 +224,13 @@ function DashboardContent() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-all">
+          <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-all" title="Buka Evaluasi">
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/></svg>
           </button>
-          <button onClick={handleNewChat} className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-md active:scale-90 transition-all">
+          <button onClick={handleNewChat} className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-md active:scale-90 transition-all" title="Percakapan Baru">
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
           </button>
-          <button onClick={() => router.push("/home")} className="p-2.5 bg-gray-50 text-gray-500 rounded-full border border-gray-100 hover:bg-blue-50 transition-all shadow-sm">
+          <button onClick={() => router.push("/home")} className="p-2.5 bg-gray-50 text-gray-500 rounded-full border border-gray-100 hover:bg-blue-50 transition-all shadow-sm" title="Kembali ke Beranda">
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
           </button>
         </div>
@@ -241,7 +247,7 @@ function DashboardContent() {
           <div className="p-5">
             <h2 className="font-bold text-xs text-gray-400 uppercase tracking-widest mb-4">Materi Anda</h2>
             <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
-            <button onClick={() => fileInputRef.current?.click()} className="w-full border-2 border-dashed border-gray-200 p-4 rounded-2xl text-xs font-bold text-gray-500 hover:border-blue-600 hover:text-blue-600 transition-all">
+            <button onClick={() => fileInputRef.current?.click()} className="w-full border-2 border-dashed border-gray-200 p-4 rounded-2xl text-xs font-bold text-gray-500 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-600 transition-all">
               {isUploading ? "MENGUNGGAH..." : "+ UPLOAD DOKUMEN"}
             </button>
           </div>
@@ -255,7 +261,7 @@ function DashboardContent() {
           </div>
         </aside>
 
-        {/* Area Utama - MELEBAR OTOMATIS */}
+        {/* Area Utama */}
         <main className="flex-1 flex flex-col relative bg-[#F9FAFB] w-full min-w-0 transition-all duration-300 overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-4 pt-6 custom-scrollbar">
             <div className="max-w-4xl mx-auto space-y-6">
@@ -264,8 +270,8 @@ function DashboardContent() {
                   <div className="inline-block p-4 bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
                     <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                   </div>
-                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Halo, Bella!</h2>
-                  <p className="text-gray-500 text-sm mt-2">Pilih dokumen di kiri untuk mulai belajar.</p>
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Halo!</h2>
+                  <p className="text-gray-500 text-sm mt-2">Pilih dokumen di kiri untuk mulai belajar dan membuat kuis</p>
                 </div>
               )}
               {chatHistory.map((c, i) => (
@@ -276,7 +282,7 @@ function DashboardContent() {
                 </div>
               ))}
               {isChatLoading && (
-                <div className="text-[11px] font-bold text-blue-600 animate-pulse bg-white px-4 py-2 rounded-full border w-fit">AI sedang menganalisis...</div>
+                <div className="text-[11px] font-bold text-blue-600 animate-pulse bg-white px-4 py-2 rounded-full border w-fit">...</div>
               )}
               <div ref={chatEndRef} className="h-4" />
             </div>
@@ -290,7 +296,7 @@ function DashboardContent() {
           </div>
         </main>
 
-        {/* SIDEBAR KUIS - LOGIKA TERBARU AGAR MELEBAR */}
+        {/* SIDEBAR KUIS */}
         {isQuizSidebarOpen && (
           <aside className="w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 flex flex-col z-20 transition-all duration-300 animate-in slide-in-from-right shrink-0">
             <div className="p-6 flex flex-col h-full overflow-hidden">
@@ -315,31 +321,57 @@ function DashboardContent() {
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Soal</label>
                       <input type="number" value={numQuestions} onChange={(e) => setNumQuestions(Math.max(1, Math.min(parseInt(e.target.value)||1, 20)))} className="w-full mt-3 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-center outline-none" />
                     </div>
-                    <button onClick={startQuiz} disabled={isQuizLoading || selectedFiles.length === 0} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all uppercase tracking-widest">
+                    <button 
+                      onClick={startQuiz} 
+                      disabled={isQuizLoading} 
+                      className={`w-full py-4 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all uppercase tracking-widest mt-4 
+                        ${selectedFiles.length === 0 
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                          : "bg-gray-900 text-white hover:bg-black shadow-blue-100"
+                        }`}
+                    >
                       {isQuizLoading ? "MEMPROSES..." : "MULAI KUIS"}
                     </button>
                   </div>
 
                   {quizSessionHistory.length > 0 && (
                     <div className="mt-8 flex-1 overflow-y-auto custom-scrollbar pr-1">
-                      <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Riwayat</h3>
+                      <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Riwayat Terakhir</h3>
                       <div className="space-y-3 pb-6">
-                        {quizSessionHistory.map((hist, idx) => (
-                          <div key={hist.id || idx} onClick={() => { if (hist.review_data) { setQuizReviewData(hist.review_data); setQuizMode("result"); } }} className="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex justify-between items-center hover:border-blue-300 cursor-pointer transition-all">
-                            <div className="min-w-0">
-                              <p className="text-[10px] font-black text-gray-800 uppercase truncate">{hist.quiz_type} • {hist.num_questions} Soal</p>
-                              <p className="text-[9px] font-bold text-gray-400 mt-1">Selesai</p>
+                        {quizSessionHistory.map((hist, idx) => {
+                          const score = hist.score ?? 0;
+                          const getScoreColor = (val: number) => {
+                            if (val >= 80) return "text-emerald-500"; 
+                            if (val >= 60) return "text-orange-500";  
+                            return "text-rose-500";                   
+                          };
+                          const getBorderColor = (val: number) => {
+                            if (val >= 80) return "border-emerald-100 bg-emerald-50/20";
+                            if (val >= 60) return "border-orange-100 bg-orange-50/20";
+                            return "border-rose-100 bg-rose-50/20";
+                          };
+
+                          return (
+                            <div 
+                              key={hist.id || idx} 
+                              onClick={() => { if (hist.review_data) { setQuizReviewData(hist.review_data); setQuizMode("result"); } }} 
+                              className={`p-4 rounded-2xl border flex justify-between items-center hover:shadow-md cursor-pointer transition-all group ${getBorderColor(score)}`}
+                            >
+                              <div className="min-w-0">
+                                <p className="text-[10px] font-black text-gray-800 uppercase truncate">{hist.quiz_type} • {hist.num_questions} Soal</p>
+                                <p className="text-[9px] font-bold text-gray-400 mt-1">Selesai</p>
+                              </div>
+                              <div className={`text-xl font-black ${getScoreColor(score)}`}>{score}</div>
                             </div>
-                            <div className={`text-xl font-black ${hist.score >= 70 ? 'text-emerald-500' : 'text-blue-600'}`}>{hist.score}</div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Tampilan Quiz Playing & Result (Sama dengan sebelumnya) */}
+              {/* Quiz Playing Mode */}
               {quizMode === "playing" && quizQuestions.length > 0 && (
                 <div className="flex flex-col h-full overflow-hidden space-y-5 animate-in slide-in-from-right-4 duration-300">
                   <div className="bg-blue-600 p-5 rounded-3xl shadow-lg min-h-[140px] flex flex-col justify-between shrink-0 text-white">
@@ -363,7 +395,7 @@ function DashboardContent() {
                     </div>
                   ) : (
                     <div className="flex-1 overflow-y-auto space-y-4 pb-4 custom-scrollbar">
-                      <div className={`p-5 rounded-3xl border ${quizFeedback.similarity > 70 ? 'bg-emerald-50 border-emerald-100 text-emerald-900' : 'bg-orange-50 border-orange-100 text-orange-900'}`}>
+                      <div className={`p-5 rounded-3xl border ${quizFeedback.similarity >= 80 ? 'bg-emerald-50 border-emerald-100 text-emerald-900' : quizFeedback.similarity >= 60 ? 'bg-orange-50 border-orange-100 text-orange-900' : 'bg-rose-50 border-rose-100 text-rose-900'}`}>
                         <span className="text-xl font-black">{quizFeedback.similarity}%</span>
                         <p className="text-xs font-bold mt-2 italic leading-relaxed">"{quizFeedback.feedback}"</p>
                       </div>
@@ -381,7 +413,13 @@ function DashboardContent() {
                 <div className="flex flex-col h-full overflow-hidden animate-in zoom-in-95 duration-500">
                   <div className="text-center pb-6 border-b border-gray-100 shrink-0">
                     <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Skor Akhir</h3>
-                    <div className={`text-6xl font-black ${quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1) >= 70 ? 'text-emerald-500' : 'text-blue-600'}`}>{Math.round(quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1))}</div>
+                    {/* WARNA SKOR AKHIR */}
+                    <div className={`text-6xl font-black ${
+                      (quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1)) >= 80 ? 'text-emerald-500' : 
+                      (quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1)) >= 60 ? 'text-orange-500' : 'text-rose-500'
+                    }`}>
+                      {Math.round(quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1))}
+                    </div>
                   </div>
                   <div className="flex-1 overflow-y-auto py-4 space-y-4 custom-scrollbar">
                     {quizReviewData.map((item, idx) => (
