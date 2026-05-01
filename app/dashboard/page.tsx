@@ -18,6 +18,7 @@ function DashboardContent() {
   
   // State Utama
   const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("User"); // State untuk menyimpan nama user
   const [sessionId, setSessionId] = useState(""); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
   const [isQuizSidebarOpen, setIsQuizSidebarOpen] = useState(false); 
@@ -52,7 +53,6 @@ function DashboardContent() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Responsive
   useEffect(() => {
     const checkDevice = () => {
       if (window.innerWidth >= 1024) { 
@@ -64,7 +64,6 @@ function DashboardContent() {
     checkDevice();
   }, []);
   
-  // auto scroll
   useEffect(() => {
     scrollToBottom();
   }, [chatHistory, isChatLoading, isQuizSidebarOpen]);
@@ -94,11 +93,19 @@ function DashboardContent() {
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("user_id");
+    const storedUserName = localStorage.getItem("user_name"); // Ambil nama dari localStorage
+
     if (!storedUserId) {
       router.push("/login");
       return;
     }
     setUserId(storedUserId);
+    
+    // Jika ada nama yang tersimpan, gunakan nama tersebut
+    if (storedUserName) {
+      setUserName(storedUserName);
+    }
+
     const urlSessionId = searchParams.get("session_id") || localStorage.getItem("current_session_id");
     if (urlSessionId) {
       setSessionId(urlSessionId);
@@ -107,7 +114,18 @@ function DashboardContent() {
     }
   }, [searchParams]);
 
-  // new chat 
+  const updateSessionTitle = async (aiFirstResponse: string) => {
+    try {
+      await fetch("https://rag-backend-skripsi.vercel.app/update-title", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, ai_response: aiFirstResponse, max_words: 5 })
+      });
+    } catch (err) {
+      console.error("Gagal update judul:", err);
+    }
+  };
+
   const handleNewChat = () => {
     setChatHistory([]);
     setQuizQuestions([]);
@@ -116,20 +134,17 @@ function DashboardContent() {
     setQuizScores([]);
     setQuizReviewData([]);
     setQuestion("");
-
     const newSessionId = crypto.randomUUID(); 
     setSessionId(newSessionId);
     localStorage.setItem("current_session_id", newSessionId);
-
     router.replace(`/dashboard?session_id=${newSessionId}`);
   };
   
   const startQuiz = async () => {
     if (selectedFiles.length === 0) {
-      alert("Pilih minimal satu dokumen di sidebar kiri dulu ya untuk membuat kuis!");
+      alert("Pilih dokumen di sidebar kiri dulu ya untuk membuat kuis! 😊");
       return;
     }
-
     setQuizQuestions([]); setQuizFeedback(null); setQuizScores([]); setQuizReviewData([]); setCurrentIdx(0); setUserAnswer("");
     setIsQuizLoading(true);
     try {
@@ -171,7 +186,6 @@ function DashboardContent() {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ user_id: userId, session_id: sessionId, quiz_type: quizType, num_questions: quizQuestions.length, score: finalScore, review_data: quizReviewData })
         });
-        // Refresh riwayat kuis
         fetchData(userId!, sessionId);
       } catch (err) { console.error("Gagal simpan riwayat:", err); }
       setQuizMode("result");
@@ -194,6 +208,7 @@ function DashboardContent() {
     e.preventDefault(); 
     if (!question.trim()) return;
     const q = question; setQuestion(""); 
+    const isFirstChat = chatHistory.length === 0;
     setChatHistory(p => [...p, {role: "user", content: q}]); 
     setIsChatLoading(true);
     try {
@@ -203,6 +218,9 @@ function DashboardContent() {
       });
       const data = await res.json();
       setChatHistory(p => [...p, {role: "ai", content: data.answer}]);
+      if (isFirstChat && data.answer) {
+        updateSessionTitle(data.answer);
+      }
     } catch (e) { setChatHistory(p => [...p, {role: "ai", content: "Koneksi terputus."}]); }
     finally { setIsChatLoading(false); }
   };
@@ -211,14 +229,15 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB] font-sans overflow-hidden text-[#1F2937]">
-      {/* Header Updated */}
       <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer hover:bg-blue-700 shadow-sm" onClick={() => router.push("/home")}>A</div>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer hover:bg-blue-700 shadow-sm" onClick={() => router.push("/home")}>
+              {userName.substring(0, 1).toUpperCase()}
+            </div>
             <h1 className="text-gray-900 font-bold text-sm md:text-lg hidden sm:block">Asisten Akademik</h1>
           </div>
         </div>
@@ -237,12 +256,10 @@ function DashboardContent() {
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Overlay Mobile */}
         {(isSidebarOpen || (isQuizSidebarOpen && window.innerWidth < 1024)) && (
           <div className="fixed inset-0 bg-black/30 z-20 md:hidden" onClick={() => {setIsSidebarOpen(false); setIsQuizSidebarOpen(false);}} />
         )}
 
-        {/* Sidebar Kiri */}
         <aside className={`${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:relative w-72 h-[calc(100vh-64px)] bg-white border-r border-gray-100 flex flex-col z-20 transition-transform duration-300`}>
           <div className="p-5">
             <h2 className="font-bold text-xs text-gray-400 uppercase tracking-widest mb-4">Materi Anda</h2>
@@ -261,7 +278,6 @@ function DashboardContent() {
           </div>
         </aside>
 
-        {/* Area Utama */}
         <main className="flex-1 flex flex-col relative bg-[#F9FAFB] w-full min-w-0 transition-all duration-300 overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-4 pt-6 custom-scrollbar">
             <div className="max-w-4xl mx-auto space-y-6">
@@ -270,8 +286,9 @@ function DashboardContent() {
                   <div className="inline-block p-4 bg-white rounded-3xl shadow-sm border border-gray-100 mb-6">
                     <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
                   </div>
-                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">Halo!</h2>
-                  <p className="text-gray-500 text-sm mt-2">Pilih dokumen di kiri untuk mulai belajar dan membuat kuis</p>
+                  {/* SAPAAN DINAMIS MENGGUNAKAN userName */}
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight text-center">Halo, {userName}!</h2>
+                  <p className="text-gray-500 text-sm mt-2 text-center">Pilih dokumen di kiri untuk mulai belajar.</p>
                 </div>
               )}
               {chatHistory.map((c, i) => (
@@ -282,12 +299,11 @@ function DashboardContent() {
                 </div>
               ))}
               {isChatLoading && (
-                <div className="text-[11px] font-bold text-blue-600 animate-pulse bg-white px-4 py-2 rounded-full border w-fit">...</div>
+                <div className="text-[11px] font-bold text-blue-600 animate-pulse bg-white px-4 py-2 rounded-full border w-fit">AI sedang menganalisis...</div>
               )}
               <div ref={chatEndRef} className="h-4" />
             </div>
           </div>
-          
           <div className="p-4 bg-[#F9FAFB] z-10">
             <form onSubmit={handleAsk} className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 p-2 flex gap-2">
               <input value={question} onChange={e => setQuestion(e.target.value)} placeholder="Tanyakan sesuatu..." className="flex-1 px-4 py-3 outline-none text-sm text-gray-700 bg-transparent" />
@@ -296,7 +312,6 @@ function DashboardContent() {
           </div>
         </main>
 
-        {/* SIDEBAR KUIS */}
         {isQuizSidebarOpen && (
           <aside className="w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 flex flex-col z-20 transition-all duration-300 animate-in slide-in-from-right shrink-0">
             <div className="p-6 flex flex-col h-full overflow-hidden">
@@ -319,19 +334,17 @@ function DashboardContent() {
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Soal</label>
-                      <input type="number" value={numQuestions} onChange={(e) => setNumQuestions(Math.max(1, Math.min(parseInt(e.target.value)||1, 20)))} className="w-full mt-3 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-center outline-none" />
+                      <input 
+                        type="number" 
+                        value={numQuestions} 
+                        onChange={(e) => setNumQuestions(Math.max(1, Math.min(parseInt(e.target.value)||1, quizType === "pg" ? 40 : 20)))} 
+                        className="w-full mt-3 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-center outline-none" 
+                      />
+                      <p className="text-[9px] text-gray-400 mt-2 italic text-center">
+                        * Maksimal {quizType === "pg" ? "40 soal untuk Pilihan Ganda" : "20 soal untuk Essay"}
+                      </p>
                     </div>
-                    <button 
-                      onClick={startQuiz} 
-                      disabled={isQuizLoading} 
-                      className={`w-full py-4 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all uppercase tracking-widest mt-4 
-                        ${selectedFiles.length === 0 
-                          ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
-                          : "bg-gray-900 text-white hover:bg-black shadow-blue-100"
-                        }`}
-                    >
-                      {isQuizLoading ? "MEMPROSES..." : "MULAI KUIS"}
-                    </button>
+                    <button onClick={startQuiz} disabled={isQuizLoading} className={`w-full py-4 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all uppercase tracking-widest mt-4 ${selectedFiles.length === 0 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-gray-900 text-white hover:bg-black"}`}>{isQuizLoading ? "MEMPROSES..." : "MULAI KUIS"}</button>
                   </div>
 
                   {quizSessionHistory.length > 0 && (
@@ -352,11 +365,7 @@ function DashboardContent() {
                           };
 
                           return (
-                            <div 
-                              key={hist.id || idx} 
-                              onClick={() => { if (hist.review_data) { setQuizReviewData(hist.review_data); setQuizMode("result"); } }} 
-                              className={`p-4 rounded-2xl border flex justify-between items-center hover:shadow-md cursor-pointer transition-all group ${getBorderColor(score)}`}
-                            >
+                            <div key={hist.id || idx} onClick={() => { if (hist.review_data) { setQuizReviewData(hist.review_data); setQuizMode("result"); } }} className={`p-4 rounded-2xl border flex justify-between items-center hover:shadow-md cursor-pointer transition-all group ${getBorderColor(score)}`}>
                               <div className="min-w-0">
                                 <p className="text-[10px] font-black text-gray-800 uppercase truncate">{hist.quiz_type} • {hist.num_questions} Soal</p>
                                 <p className="text-[9px] font-bold text-gray-400 mt-1">Selesai</p>
@@ -371,7 +380,6 @@ function DashboardContent() {
                 </div>
               )}
 
-              {/* Quiz Playing Mode */}
               {quizMode === "playing" && quizQuestions.length > 0 && (
                 <div className="flex flex-col h-full overflow-hidden space-y-5 animate-in slide-in-from-right-4 duration-300">
                   <div className="bg-blue-600 p-5 rounded-3xl shadow-lg min-h-[140px] flex flex-col justify-between shrink-0 text-white">
@@ -413,11 +421,7 @@ function DashboardContent() {
                 <div className="flex flex-col h-full overflow-hidden animate-in zoom-in-95 duration-500">
                   <div className="text-center pb-6 border-b border-gray-100 shrink-0">
                     <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Skor Akhir</h3>
-                    {/* WARNA SKOR AKHIR */}
-                    <div className={`text-6xl font-black ${
-                      (quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1)) >= 80 ? 'text-emerald-500' : 
-                      (quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1)) >= 60 ? 'text-orange-500' : 'text-rose-500'
-                    }`}>
+                    <div className={`text-6xl font-black ${(quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1)) >= 80 ? 'text-emerald-500' : (quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1)) >= 60 ? 'text-orange-500' : 'text-rose-500'}`}>
                       {Math.round(quizReviewData.reduce((a, b) => a + b.similarity, 0) / (quizReviewData.length || 1))}
                     </div>
                   </div>
