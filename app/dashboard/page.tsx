@@ -53,7 +53,6 @@ function DashboardContent() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 1. Responsivitas Layar (Auto-toggle Sidebar Kuis)
   useEffect(() => {
     const checkDevice = () => {
       if (window.innerWidth >= 1024) { 
@@ -65,12 +64,10 @@ function DashboardContent() {
     checkDevice();
   }, []);
   
-  // 2. Auto Scroll Chat (Dipicu chat baru atau kuis dibuka/tutup)
   useEffect(() => {
     scrollToBottom();
   }, [chatHistory, isChatLoading, isQuizSidebarOpen]);
 
-  // 3. Fetch Data Awal
   const fetchData = async (uid: string, sid: string) => {
     if (!sid || sid === "default-session") return;
     try {
@@ -90,11 +87,10 @@ function DashboardContent() {
         setQuizSessionHistory(quizData || []);
       }
     } catch (error) {
-      console.warn("Koneksi backend terputus:", error);
+      console.warn("Koneksi backend terputus.");
     }
   };
 
-  // 4. Inisialisasi User & Sesi
   useEffect(() => {
     const storedUserId = localStorage.getItem("user_id");
     const storedUserName = localStorage.getItem("user_name");
@@ -117,20 +113,26 @@ function DashboardContent() {
     }
   }, [searchParams]);
 
-  // 5. Update Judul Sesi Otomatis dari Respon AI
+  // LOGIKA AUTO-TITLE TERBARU
   const updateSessionTitle = async (aiFirstResponse: string) => {
     try {
-      await fetch("https://rag-backend-skripsi.vercel.app/update-title", {
+      const res = await fetch("https://rag-backend-skripsi.vercel.app/update-title", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, ai_response: aiFirstResponse, max_words: 5 })
+        body: JSON.stringify({ 
+          session_id: sessionId, 
+          ai_response: aiFirstResponse, // Judul diambil dari sini
+          max_words: 5 
+        })
       });
+      if (res.ok) {
+        console.log("Judul berhasil diperbarui otomatis berdasarkan respon AI.");
+      }
     } catch (err) {
-      console.error("Gagal update judul:", err);
+      console.error("Gagal update judul.");
     }
   };
 
-  // 6. Reset Percakapan (Tanpa Buang File)
   const handleNewChat = () => {
     setChatHistory([]);
     setQuizQuestions([]);
@@ -145,10 +147,9 @@ function DashboardContent() {
     router.replace(`/dashboard?session_id=${newSessionId}`);
   };
   
-  // 7. Logika Kuis
   const startQuiz = async () => {
     if (selectedFiles.length === 0) {
-      alert("Maaf, pilih minimal satu dokumen di sidebar kiri dulu ya untuk membuat kuis! 😊");
+      alert("Maaf, pilih dokumen di sidebar kiri dulu ya untuk membuat kuis! 😊");
       return;
     }
     setQuizQuestions([]); setQuizFeedback(null); setQuizScores([]); setQuizReviewData([]); setCurrentIdx(0); setUserAnswer("");
@@ -198,7 +199,6 @@ function DashboardContent() {
     }
   };
 
-  // 8. Upload & Chat
   const handleFileUpload = async (e: any) => {
     setIsUploading(true);
     const formData = new FormData();
@@ -215,7 +215,10 @@ function DashboardContent() {
     e.preventDefault(); 
     if (!question.trim()) return;
     const q = question; setQuestion(""); 
+    
+    // Simpan status apakah ini chat pertama
     const isFirstChat = chatHistory.length === 0;
+    
     setChatHistory(p => [...p, {role: "user", content: q}]); 
     setIsChatLoading(true);
     try {
@@ -225,6 +228,8 @@ function DashboardContent() {
       });
       const data = await res.json();
       setChatHistory(p => [...p, {role: "ai", content: data.answer}]);
+
+      // Jika chat pertama, langsung suruh AI buat judul dari jawabannya sendiri
       if (isFirstChat && data.answer) {
         updateSessionTitle(data.answer);
       }
@@ -236,7 +241,6 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB] font-sans overflow-hidden text-[#1F2937]">
-      {/* Header */}
       <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
@@ -264,13 +268,11 @@ function DashboardContent() {
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Overlay Mobile */}
         {(isSidebarOpen || (isQuizSidebarOpen && window.innerWidth < 1024)) && (
           <div className="fixed inset-0 bg-black/30 z-20 md:hidden" onClick={() => {setIsSidebarOpen(false); setIsQuizSidebarOpen(false);}} />
         )}
 
-        {/* Sidebar Kiri */}
-        <aside className={`${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:relative w-72 h-[calc(100vh-64px)] bg-white border-r border-gray-100 flex flex-col z-20 transition-transform duration-300`}>
+        <aside className={`${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:relative w-72 h-[calc(100vh-64px)] bg-white border-r border-gray-100 flex flex-col z-20 transition-transform duration-300 shadow-xl md:shadow-none`}>
           <div className="p-5">
             <h2 className="font-bold text-xs text-gray-400 uppercase tracking-widest mb-4">Materi Anda</h2>
             <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
@@ -288,7 +290,6 @@ function DashboardContent() {
           </div>
         </aside>
 
-        {/* Area Utama */}
         <main className="flex-1 flex flex-col relative bg-[#F9FAFB] w-full min-w-0 transition-all duration-300 overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-4 pt-6 custom-scrollbar">
             <div className="max-w-4xl mx-auto space-y-6">
@@ -322,7 +323,6 @@ function DashboardContent() {
           </div>
         </main>
 
-        {/* SIDEBAR KUIS */}
         {isQuizSidebarOpen && (
           <aside className="w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 flex flex-col z-20 transition-all duration-300 animate-in slide-in-from-right shrink-0">
             <div className="p-6 flex flex-col h-full overflow-hidden">
@@ -444,7 +444,7 @@ function DashboardContent() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => { if (userId && sessionId) fetchData(userId, sessionId); setQuizQuestions([]); setQuizMode("setup"); }} className="w-full bg-blue-600 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest mt-4">UTAMA</button>
+                  <button onClick={() => { if (userId && sessionId) fetchData(userId, sessionId); setQuizQuestions([]); setQuizMode("setup"); }} className="w-full bg-blue-600 text-white py-4 rounded-2xl text-xs font-black uppercase mt-4">UTAMA</button>
                 </div>
               )}
             </div>
