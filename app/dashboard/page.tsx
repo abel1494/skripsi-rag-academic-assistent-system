@@ -20,7 +20,7 @@ function DashboardContent() {
   const [userId, setUserId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState(""); 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
-  const [isQuizSidebarOpen, setIsQuizSidebarOpen] = useState(true); 
+  const [isQuizSidebarOpen, setIsQuizSidebarOpen] = useState(false); 
   
   // State Chat
   const [question, setQuestion] = useState("");
@@ -52,9 +52,22 @@ function DashboardContent() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // LOGIKA RESPONSIVE: Laptop buka kuis otomatis, HP tutup kuis otomatis
+  useEffect(() => {
+    const checkDevice = () => {
+      if (window.innerWidth >= 1024) { 
+        setIsQuizSidebarOpen(true); 
+      } else {
+        setIsQuizSidebarOpen(false); 
+      }
+    };
+    checkDevice();
+  }, []);
+  
+  // AUTO-SCROLL: Tetap jalan meski sidebar kuis dibuka/tutup
   useEffect(() => {
     scrollToBottom();
-  }, [chatHistory, isChatLoading]);
+  }, [chatHistory, isChatLoading, isQuizSidebarOpen]);
 
   const fetchData = async (uid: string, sid: string) => {
     if (!sid || sid === "default-session") return;
@@ -86,9 +99,7 @@ function DashboardContent() {
       return;
     }
     setUserId(storedUserId);
-    
     const urlSessionId = searchParams.get("session_id") || localStorage.getItem("current_session_id");
-    
     if (urlSessionId) {
       setSessionId(urlSessionId);
       localStorage.setItem("current_session_id", urlSessionId);
@@ -177,57 +188,31 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB] font-sans overflow-hidden text-[#1F2937]">
-      {/* Header Updated */}
       {/* Header - Simbol Only Mode */}
       <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
-          {/* Menu Sidebar (Mobile) */}
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 text-gray-500 hover:bg-gray-50 rounded-lg">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          
           <div className="flex items-center gap-2">
-            {/* Logo Inisial A (Klik ke Home) */}
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer hover:bg-blue-700 transition-all shadow-sm" onClick={() => router.push("/home")}>A</div>
             <h1 className="text-gray-900 font-bold text-sm md:text-lg tracking-tight hidden sm:block">Asisten Akademik</h1>
           </div>
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          {/* Simbol Kuis (Ikon Lampu/Ide) */}
-          <button 
-            onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} 
-            className="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-all" 
-            title="Buka Evaluasi/Kuis"
-          >
-            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/>
-            </svg>
+          <button onClick={() => setIsQuizSidebarOpen(!isQuizSidebarOpen)} className="p-2.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-all" title="Buka Evaluasi/Kuis">
+            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.989-2.386l-.548-.547z"/></svg>
           </button>
-
-          {/* Simbol Percakapan Baru (Ikon Plus Chat) */}
-          <button 
-            onClick={() => router.push("/home")} 
-            className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-md active:scale-90 transition-all"
-            title="Percakapan Baru"
-          >
-            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/>
-            </svg>
+          <button onClick={() => router.push("/home")} className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-md active:scale-90 transition-all" title="Percakapan Baru">
+            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
           </button>
-
-          {/* Simbol Dashboard/Home (Ikon Rumah) */}
-          <button 
-            onClick={() => router.push("/home")} 
-            className="p-2.5 bg-gray-50 text-gray-500 rounded-full border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
-            title="Ke Dashboard Utama"
-          >
-            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
+          <button onClick={() => router.push("/home")} className="p-2.5 bg-gray-50 text-gray-500 rounded-full border border-gray-100 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm" title="Ke Dashboard Utama">
+            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
           </button>
         </div>
       </header>
+
       <div className="flex-1 flex overflow-hidden relative">
         {/* Overlay Mobile */}
         {(isSidebarOpen || isQuizSidebarOpen) && (
@@ -253,7 +238,7 @@ function DashboardContent() {
           </div>
         </aside>
 
-        {/* Area Utama - Chat with Sticky Input */}
+        {/* Area Utama - Chat */}
         <main className="flex-1 flex flex-col relative bg-[#F9FAFB] w-full min-w-0">
           <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-4 pt-6 custom-scrollbar">
             <div className="max-w-3xl mx-auto space-y-6">
@@ -278,11 +263,9 @@ function DashboardContent() {
                   <div className="text-[11px] font-bold text-blue-600 animate-pulse bg-white px-4 py-2 rounded-full border border-blue-100 shadow-sm">AI sedang menganalisis dokumen...</div>
                 </div>
               )}
-              <div ref={chatEndRef} />
+              <div ref={chatEndRef} className="h-4" />
             </div>
           </div>
-          
-          {/* Sticky Input Bar */}
           <div className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#F9FAFB] via-[#F9FAFB] to-transparent z-10">
             <form onSubmit={handleAsk} className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 p-2 flex gap-2">
               <input value={question} onChange={e => setQuestion(e.target.value)} placeholder="Tanyakan sesuatu..." className="flex-1 px-4 py-3 bg-transparent outline-none text-sm text-gray-700" />
@@ -291,18 +274,10 @@ function DashboardContent() {
           </div>
         </main>
 
-        {/* Sidebar Kanan - Quiz */}
-        <aside className={`${isQuizSidebarOpen ? "translate-x-0" : "translate-x-full"} lg:translate-x-0 fixed lg:relative right-0 w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 p-6 flex flex-col z-20 transition-transform duration-300 shadow-xl lg:shadow-none overflow-hidden`}>
-          <button 
-            onClick={() => setIsQuizSidebarOpen(false)} 
-            className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        
-          <h2 className="font-black text-xs text-gray-400 uppercase tracking-[0.2em] mb-6 border-b border-gray-50 pb-3 text-center shrink-0">
-            Evaluasi Belajar
-          </h2>
+        {/* Sidebar Kanan - Quiz (Tanpa lg:translate-x-0 agar bisa di-toggle di laptop) */}
+        <aside className={`${isQuizSidebarOpen ? "translate-x-0" : "translate-x-full"} fixed lg:relative right-0 w-80 md:w-96 h-[calc(100vh-64px)] bg-white border-l border-gray-100 p-6 flex flex-col z-20 transition-transform duration-300 shadow-xl lg:shadow-none overflow-hidden`}>
+          <button onClick={() => setIsQuizSidebarOpen(false)} className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+          <h2 className="font-black text-xs text-gray-400 uppercase tracking-[0.2em] mb-6 border-b border-gray-50 pb-3 text-center shrink-0">Evaluasi Belajar</h2>
           {quizMode === "setup" && (
             <div className="flex flex-col h-full overflow-hidden animate-in fade-in duration-500">
               <div className="space-y-6 shrink-0">
@@ -317,11 +292,8 @@ function DashboardContent() {
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jumlah Soal</label>
                   <input type="number" value={numQuestions} onChange={(e) => setNumQuestions(Math.max(1, Math.min(parseInt(e.target.value)||1, 20)))} className="w-full mt-3 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-center outline-none" />
                 </div>
-                <button onClick={startQuiz} disabled={isQuizLoading || selectedFiles.length === 0} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-xs shadow-lg active:scale-[0.98] transition-all disabled:opacity-30 uppercase tracking-[0.1em]">
-                  {isQuizLoading ? "MEMPROSES..." : "MULAI KUIS SEKARANG"}
-                </button>
+                <button onClick={startQuiz} disabled={isQuizLoading || selectedFiles.length === 0} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-xs shadow-lg active:scale-[0.98] transition-all disabled:opacity-30 uppercase tracking-[0.1em]">{isQuizLoading ? "MEMPROSES..." : "MULAI KUIS SEKARANG"}</button>
               </div>
-
               {quizSessionHistory.length > 0 && (
                 <div className="mt-8 flex-1 overflow-y-auto custom-scrollbar pr-1 pb-10">
                   <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pb-2 border-b border-gray-50">Riwayat Terakhir</h3>
@@ -340,17 +312,15 @@ function DashboardContent() {
               )}
             </div>
           )}
-
-          {quizMode === "playing" && quizQuestions.length > 0 && quizQuestions[currentIdx] && (
+          {quizMode === "playing" && quizQuestions.length > 0 && (
             <div className="flex flex-col h-full overflow-hidden space-y-5 animate-in slide-in-from-right-4 duration-300">
               <div className="bg-blue-600 p-5 rounded-3xl shadow-lg shadow-blue-100 min-h-[140px] flex flex-col justify-between shrink-0 text-white">
                 <div className="flex justify-between items-center mb-3">
                    <span className="text-[10px] font-black opacity-70 uppercase tracking-wider">Soal {currentIdx + 1} / {quizQuestions.length}</span>
                    <span className="text-[9px] font-black bg-white/20 px-3 py-1 rounded-full uppercase">{quizType}</span>
                 </div>
-                <p className="text-sm font-bold leading-relaxed">{quizQuestions[currentIdx].question}</p>
+                <p className="text-sm font-bold leading-relaxed">{quizQuestions[currentIdx]?.question}</p>
               </div>
-
               {!quizFeedback ? (
                 <div className="flex-1 overflow-y-auto space-y-4 pb-4 custom-scrollbar pr-1">
                   {quizQuestions[currentIdx].options ? (
@@ -381,7 +351,6 @@ function DashboardContent() {
               )}
             </div>
           )}
-
           {quizMode === "result" && (
             <div className="flex flex-col h-full overflow-hidden animate-in zoom-in-95 duration-500">
               <div className="text-center pb-6 border-b border-gray-100 shrink-0">
@@ -408,8 +377,6 @@ function DashboardContent() {
           )}
         </aside>
       </div>
-      
-      {/* Scrollbar Custom Styling */}
       <style dangerouslySetInnerHTML={{__html: `.custom-scrollbar::-webkit-scrollbar { width: 4px; } .custom-scrollbar::-webkit-scrollbar-track { background: transparent; } .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E5E7EB; border-radius: 10px; } .custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: #D1D5DB; }`}} />
     </div>
   );
