@@ -33,21 +33,55 @@ export default function HomePage() {
   };
 
   const handleNewSession = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`https://rag-backend-skripsi.vercel.app/create-session?user_id=${userId}`, { method: "POST" });
-      const data = await res.json();
-      if (data?.[0]?.id) {
-        localStorage.setItem("current_session_id", data[0].id);
-        router.push(`/dashboard?session_id=${data[0].id}`);
+      setIsLoading(true);
+      const newSessionId = crypto.randomUUID(); 
+  
+      try {
+        const res = await fetch(`https://rag-backend-skripsi.vercel.app/create-session`, { 
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            session_id: newSessionId,
+            title: "Sesi Belajar Baru"
+          })
+        });
+  
+        if (res.ok) {
+          localStorage.setItem("current_session_id", newSessionId);
+          router.push(`/dashboard?session_id=${newSessionId}`);
+        } else {
+          alert("Gagal membuat sesi di database.");
+        }
+      } catch (error) {
+        alert("Gagal membuat percakapan baru.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      alert("Gagal membuat percakapan baru.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
+  const deleteSession = async (sessionId: string) => {
+  if (!confirm("Apakah Anda yakin ingin menghapus percakapan ini?")) return;
+
+  try {
+    const res = await fetch("https://rag-backend-skripsi.vercel.app/delete-session", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+
+    if (res.ok) {
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      alert("Sesi berhasil dihapus.");
+    } else {
+      alert("Gagal menghapus sesi.");
+    }
+  } catch (error) {
+    console.error("Error delete:", error);
+    alert("Koneksi bermasalah.");
+  }
+};
+  
   const openSession = async (sessionId: string) => {
     localStorage.setItem("current_session_id", sessionId);
     router.push(`/dashboard?session_id=${sessionId}`);
@@ -89,6 +123,23 @@ export default function HomePage() {
               <p className="text-blue-100 text-sm">Buka ruang kerja kosong</p>
             </div>
           </div>
+          {sessions.map((session) => (
+            <div key={session.id} className="relative group">
+              {/* Kotak Sesi Utama */}
+              <div onClick={() => openSession(session.id)} className="cursor-pointer ...">
+                 <h3>{session.title}</h3>
+              </div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation(); 
+                  deleteSession(session.id);
+                }}
+                className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                🗑️
+              </button>
+            </div>
+          ))}
 
             {/* LIST SESI LAMA */}
             {sessions.map((ses, idx) => {
