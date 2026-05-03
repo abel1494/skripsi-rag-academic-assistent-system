@@ -142,13 +142,13 @@ export default function HomePage() {
                 className="relative group bg-white border border-gray-100 rounded-3xl p-8 flex flex-col justify-between cursor-pointer hover:border-blue-300 hover:shadow-lg transition-all active:scale-[0.98] min-h-[200px]"
                 onClick={() => openSession(ses.id)}
               >
-                {/* Tombol Hapus (Hover effect) */}
+                {/* Tombol Hapus */}
                 <button 
                   onClick={(e) => {
-                    e.stopPropagation(); // Agar tidak men-trigger openSession
+                    e.stopPropagation(); 
                     deleteSession(ses.id);
                   }}
-                  className="absolute top-4 right-4 p-2 bg-red-50 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white z-10"
+                  className="absolute top-5 right-5 p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors z-10 shadow-sm"
                   title="Hapus Sesi"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
